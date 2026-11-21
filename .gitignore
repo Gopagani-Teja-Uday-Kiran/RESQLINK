@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.vite/
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/
+coverage/
+*.log
+automation/selenium/.cache/
+automation/selenium/results/
+
+# Local databases, SQLite journals, and backups
+*.sqlite*
+*.db
+*.db-*
+backups/

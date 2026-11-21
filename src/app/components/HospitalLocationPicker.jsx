@@ -1,0 +1,26 @@
+import React from "react";
+import { EmergencyMap } from "./EmergencyMap";
+
+function HospitalLocationPicker({ value, status, message, onMapClick = null }) {
+  const center = value ? [value.latitude, value.longitude] : [17.3850, 78.4867];
+  const markers = value
+    ? [{ position: center, label: value.label || "Hospital address match", type: "hospital" }]
+    : [];
+
+  return <section className="space-y-2" aria-label="Hospital address map preview">
+    <div>
+      <p className="font-medium">Hospital map location</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">A pin will appear automatically when a match is found. Map data may only identify the nearby area; click the map to set the exact hospital entrance.</p>
+    </div>
+    <div className="h-72 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700" id="hospital-location-map">
+      <EmergencyMap center={center} markers={markers} showDistance={false} zoom={value ? 16 : 5} onMapClick={onMapClick} />
+    </div>
+    {!value && <p className="text-xs text-gray-600 dark:text-gray-400" role="status">
+      {message || (status === "loading" ? "Finding this address on the map…" : "Enter a full address, name, Plus Code, or latitude,longitude. You can also click the map to place the exact pin.")}
+    </p>}
+    {value && <p className="text-sm text-green-700 dark:text-green-400" role="status">Address location found: {value.latitude.toFixed(6)}, {value.longitude.toFixed(6)}. {message}</p>}
+    {value && <p className="text-xs text-gray-500">{value.attribution || "Address location match"}</p>}
+  </section>;
+}
+
+export { HospitalLocationPicker };
