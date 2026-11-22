@@ -10,7 +10,9 @@ import olc from 'open-location-code';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 try { loadEnvFile(resolve(root, '.env')); } catch {}
-const dbPath = resolve(root, 'resqlink.sqlite');
+const dataDir = resolve(root, process.env.DATA_DIR || '.');
+await mkdir(dataDir, { recursive: true });
+const dbPath = resolve(dataDir, 'resqlink.sqlite');
 const db = new DatabaseSync(dbPath);
 const openLocationCode = new olc.OpenLocationCode();
 const SESSION_COOKIE = 'resqlink_session';
@@ -422,7 +424,7 @@ function ensureAdminAccount() {
 ensureAdminAccount();
 
 async function createDailyBackup() {
-  const backupDir = resolve(root, 'backups');
+  const backupDir = resolve(dataDir, 'backups');
   await mkdir(backupDir, { recursive: true });
   const day = new Date().toISOString().slice(0, 10);
   const destination = resolve(backupDir, `resqlink-${day}.sqlite`);
@@ -1063,8 +1065,8 @@ const apiServer = createServer(async (req, res) => {
   }
 });
 
-const apiPort = Number(process.env.API_PORT) || 3001;
-const apiHost = process.env.API_HOST || '127.0.0.1';
+const apiPort = Number(process.env.PORT || process.env.API_PORT) || 3001;
+const apiHost = process.env.API_HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
 apiServer.listen(apiPort, apiHost, () => console.log(`SQLite API ready at http://${apiHost}:${apiPort} (resqlink.sqlite)`));
 if (!process.argv.includes('--api-only')) {
   const vite = spawn(process.execPath, [resolve(root, 'node_modules/vite/bin/vite.js'), '--host', '127.0.0.1'], { cwd: root, stdio: 'inherit', windowsHide: true });
