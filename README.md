@@ -2,6 +2,8 @@
 
 ResQLink is a full-stack emergency response platform connecting patients, ambulances, and hospitals. It combines GPS-based SOS alerts, nearest eligible hospital assignment, ambulance tracking, OSRM route guidance, hospital bed management, notifications, secure login, emergency chat, and optional sensor-based fall alerts.
 
+**Live demo:** [Open ResQLink](https://resqlink-demo.onrender.com)
+
 ## Features
 
 - **Patients:** Create an SOS using device GPS, view emergency status and ambulance location, manage emergency contacts, and chat with responders.
