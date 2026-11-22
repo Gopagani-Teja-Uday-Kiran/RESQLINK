@@ -12,12 +12,12 @@ function HospitalLocationPicker({ value, status, message, onMapClick = null }) {
       <p className="font-medium">Hospital map location</p>
       <p className="text-sm text-gray-600 dark:text-gray-400">A pin will appear automatically when a match is found. Map data may only identify the nearby area; click the map to set the exact hospital entrance.</p>
     </div>
+    {!value && <p className={`text-xs ${status === "error" ? "text-red-600 dark:text-red-400" : "text-gray-600 dark:text-gray-400"}`} role={status === "error" ? "alert" : "status"}>
+      {message || (status === "loading" ? "Finding this address on the map…" : "Enter a full address, name, Plus Code, or latitude,longitude. You can also click the map to place the exact pin.")}
+    </p>}
     <div className="h-72 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700" id="hospital-location-map">
       <EmergencyMap center={center} markers={markers} showDistance={false} zoom={value ? 16 : 5} onMapClick={onMapClick} />
     </div>
-    {!value && <p className="text-xs text-gray-600 dark:text-gray-400" role="status">
-      {message || (status === "loading" ? "Finding this address on the map…" : "Enter a full address, name, Plus Code, or latitude,longitude. You can also click the map to place the exact pin.")}
-    </p>}
     {value && <p className="text-sm text-green-700 dark:text-green-400" role="status">Address location found: {value.latitude.toFixed(6)}, {value.longitude.toFixed(6)}. {message}</p>}
     {value && <p className="text-xs text-gray-500">{value.attribution || "Address location match"}</p>}
   </section>;
