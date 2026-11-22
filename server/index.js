@@ -551,9 +551,13 @@ const apiServer = createServer(async (req, res) => {
         const localityAndPostalCode = parts.filter((part) => !/^PLOT\b/i.test(part) && !/state bank of india/i.test(part)).join(', ');
         // Address without postcode for more lenient matching
         const addressWithoutPostcode = address.replace(/\b\d{6}\b/g, '').replace(/,\s*,/g, ',').replace(/,\s*$/, '').trim();
+        const localityCandidates = parts.length > 4
+          ? [parts.slice(-5).join(', '), parts.slice(-4).join(', ')]
+          : [];
         const candidates = [
           addressWithoutPostcode || address,
           address,
+          ...localityCandidates,
           streetAndArea,
           localityAndPostalCode,
           hospitalName,
