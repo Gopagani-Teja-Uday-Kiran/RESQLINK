@@ -86,11 +86,14 @@ function Signup() {
           setHospitalLocationMessage(result.error || "Could not find this address. Check it and try again.");
           return null;
         }
-        const coordinates = { ...result.location, attribution: result.attribution, latitude: Number(result.location.latitude), longitude: Number(result.location.longitude) };
+        const approximate = Boolean(result.approximate || result.location.approximate);
+        const coordinates = { ...result.location, approximate, attribution: result.attribution, latitude: Number(result.location.latitude), longitude: Number(result.location.longitude) };
         setHospitalCoordinates(coordinates);
         setGeocodedAddress(requestKey);
-        setHospitalLocationStatus("found");
-        setHospitalLocationMessage(result.location.label ? `Matched: ${result.location.label}` : "Matched from the hospital address.");
+        setHospitalLocationStatus(approximate ? "approximate" : "found");
+        setHospitalLocationMessage(approximate
+          ? `Nearby map result: ${result.location.label || "location"}. Click the exact hospital entrance on the map to confirm it.`
+          : result.location.label ? `Matched: ${result.location.label}` : "Matched from the hospital address.");
         return coordinates;
       } catch (error) {
         if (requestId !== geocodeRequestId.current) return null;
@@ -127,6 +130,10 @@ function Signup() {
           toast.error("We could not locate this hospital address. Check the address and try again.");
           return;
         }
+      }
+      if (role === "hospital" && hospitalLocation.approximate) {
+        toast.error("Click the exact hospital entrance on the map, or enter its coordinates, before creating the account.");
+        return;
       }
       const metadata = {
         name,

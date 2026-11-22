@@ -562,6 +562,15 @@ const apiServer = createServer(async (req, res) => {
           localityAndPostalCode,
           hospitalName,
         ].filter((candidate, index, list) => candidate && candidate.length >= 3 && list.indexOf(candidate) === index);
+        const respondWithMatch = (location, candidate) => {
+          const approximate = localityCandidates.includes(candidate)
+            || Boolean(hospitalName && !matchesHospitalName(location.label, hospitalName));
+          return json(res, 200, {
+            location: { ...location, approximate },
+            approximate,
+            attribution: location.attribution,
+          });
+        };
 
         for (const candidate of candidates) {
           const expectedName = candidate === hospitalName ? hospitalName : '';
@@ -569,13 +578,13 @@ const apiServer = createServer(async (req, res) => {
           for (const requirePostcode of postcodeChecks) {
             try {
               const photonMatch = await firstPhotonMatch(candidate, expectedName, requirePostcode);
-              if (photonMatch) return json(res, 200, { location: photonMatch, attribution: photonMatch.attribution });
+              if (photonMatch) return respondWithMatch(photonMatch, candidate);
             } catch (error) {
               console.warn(`Photon lookup failed for "${candidate}" (postcode=${requirePostcode}):`, error.message);
             }
             try {
               const nominatimMatch = await firstNominatimMatch(candidate, expectedName, requirePostcode);
-              if (nominatimMatch) return json(res, 200, { location: nominatimMatch, attribution: nominatimMatch.attribution });
+              if (nominatimMatch) return respondWithMatch(nominatimMatch, candidate);
             } catch (error) {
               console.warn(`Nominatim lookup failed for "${candidate}" (postcode=${requirePostcode}):`, error.message);
             }
