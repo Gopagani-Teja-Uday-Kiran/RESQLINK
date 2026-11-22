@@ -10,6 +10,7 @@ import olc from 'open-location-code';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 try { loadEnvFile(resolve(root, '.env')); } catch {}
+const publicAppUrl = process.env.PUBLIC_APP_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173';
 const dataDir = resolve(root, process.env.DATA_DIR || '.');
 await mkdir(dataDir, { recursive: true });
 const dbPath = resolve(dataDir, 'resqlink.sqlite');
@@ -349,7 +350,7 @@ function transaction(action) {
 async function deliverEmergencyAlerts(contacts, emergency) {
   const smsConfigured = Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER);
   const emailConfigured = Boolean(process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY && process.env.EMAILJS_PRIVATE_KEY);
-  const text = `EMERGENCY: ${emergency.patientName} needs help. Type: ${emergency.emergencyType}. Location: https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}. Track: ${process.env.PUBLIC_APP_URL || 'http://localhost:5173'}/public-tracking/${emergency.emergencyId}`;
+  const text = `EMERGENCY: ${emergency.patientName} needs help. Type: ${emergency.emergencyType}. Location: https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}. Track: ${publicAppUrl}/public-tracking/${emergency.emergencyId}`;
   const results = await Promise.all((contacts || []).flatMap((contact) => {
     const jobs = [];
     if (smsConfigured && contact.phone) jobs.push((async () => {
@@ -360,7 +361,7 @@ async function deliverEmergencyAlerts(contacts, emergency) {
       return 'sms';
     })().catch((error) => { console.error('SMS delivery failed:', error.message); return null; }));
     if (emailConfigured && contact.email) jobs.push((async () => {
-      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ service_id: process.env.EMAILJS_SERVICE_ID, template_id: process.env.EMAILJS_TEMPLATE_ID, user_id: process.env.EMAILJS_PUBLIC_KEY, accessToken: process.env.EMAILJS_PRIVATE_KEY, template_params: { to_email: contact.email, to_name: contact.name || 'Emergency contact', patient_name: emergency.patientName, emergency_type: emergency.emergencyType, patient_phone: emergency.patientPhone || '', timestamp: emergency.createdAt, google_maps_url: `https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}`, tracking_url: `${process.env.PUBLIC_APP_URL || 'http://localhost:5173'}/public-tracking/${emergency.emergencyId}`, message: emergency.notes || 'Please contact the patient and emergency services.' } }) });
+      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ service_id: process.env.EMAILJS_SERVICE_ID, template_id: process.env.EMAILJS_TEMPLATE_ID, user_id: process.env.EMAILJS_PUBLIC_KEY, accessToken: process.env.EMAILJS_PRIVATE_KEY, template_params: { to_email: contact.email, to_name: contact.name || 'Emergency contact', patient_name: emergency.patientName, emergency_type: emergency.emergencyType, patient_phone: emergency.patientPhone || '', timestamp: emergency.createdAt, google_maps_url: `https://www.google.com/maps?q=${emergency.latitude},${emergency.longitude}`, tracking_url: `${publicAppUrl}/public-tracking/${emergency.emergencyId}`, message: emergency.notes || 'Please contact the patient and emergency services.' } }) });
       if (!response.ok) throw new Error(`EmailJS returned ${response.status}`);
       return 'email';
     })().catch((error) => { console.error('Email delivery failed:', error.message); return null; }));
@@ -444,7 +445,7 @@ const apiServer = createServer(async (req, res) => {
   const allowedOrigins = new Set([
     'http://127.0.0.1:5173',
     'http://localhost:5173',
-    ...(process.env.PUBLIC_APP_URL ? [process.env.PUBLIC_APP_URL] : []),
+    publicAppUrl,
     ...(process.env.ALLOWED_ORIGINS || '').split(',').map((value) => value.trim()).filter(Boolean),
   ]);
   if (origin && !allowedOrigins.has(origin)) return json(res, 403, { error: 'Origin not allowed.' });

@@ -19,7 +19,7 @@ Use a host that supports a persistent disk for SQLite. Ephemeral storage can be 
 
 ## Required production environment
 
-- `PUBLIC_APP_URL`: the full public site URL, e.g. `https://your-service.onrender.com`.
+- `PUBLIC_APP_URL`: the full public site URL for hosts other than Render. Render's `RENDER_EXTERNAL_URL` is used automatically unless this override is set.
 - `COOKIE_SECURE=true`: required for the HTTPS session cookie.
 - `ADMIN_EMAIL` and `ADMIN_PASSWORD`: set a unique, strong administrator password.
 - `DATA_DIR=/var/data`: the persistent disk mount path in the example above.
